@@ -7,7 +7,11 @@
     <style>
         body { font-family: '微軟正黑體', sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .filters input, .filters select { padding: 8px; font-size: 16px; margin-left: 10px; border-radius: 4px; border: 1px solid #ccc; outline: none; background: white; }
+        .filters input, .filters select { padding: 8px; font-size: 16px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; outline: none; background: white; }
+.header.filters { 
+    justify-content: flex-start; /* 讓內容統一靠左對齊 */
+    gap: 15px; /* 設定搜尋框與下拉選單之間的間距，讓畫面不擁擠 */
+}
         .filters input { width: 220px; }
         
         /* 統一採用與「所有地區」完全一致的緊湊網格，無怪物分類大框 */

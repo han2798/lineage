@@ -31,6 +31,19 @@
         .relic-name { font-weight: bold; margin-bottom: 4px; font-size: 13px; pointer-events: none; line-height: 1.2; }
         .relic-tags { font-size: 11px; color: #666; background: #e0e0e0; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; pointer-events: none; }
         
+/* 匯入與匯出按鈕區塊排版 */
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .action-btn { 
+            padding: 6px 12px; font-size: 14px; cursor: pointer; 
+            background-color: #1976d2; color: white; border: none; 
+            border-radius: 4px; transition: background-color 0.2s; font-weight: bold;
+        }
+        .action-btn:hover { background-color: #115293; }
+        .action-btn.import { background-color: #2e7d32; }
+        .action-btn.import:hover { background-color: #1b5e20; }
+
+
+
         /* 新增：精簡版怪物名稱標籤 */
         .relic-monster { font-size: 11px; color: #999; margin-top: 8px; pointer-events: none; }
         .relic-region { font-size: 11px; color: #1976d2; margin-top: 4px; pointer-events: none; font-weight: bold; }
@@ -39,9 +52,16 @@
 </head>
 <body>
 
-    <div class="header">
+ <div class="header">
         <h1>打寶路線規劃器</h1>
-        <div class="total-progress" id="totalProgressText">目前總進度: 0 / 366</div>
+        <!-- 將進度文字包在 header-right 裡面，並加入兩顆按鈕與一個隱藏的上傳元件 -->
+        <div class="header-right">
+            <button class="action-btn" onclick="exportData()">匯出存檔</button>
+            <button class="action-btn import" onclick="document.getElementById('importFile').click()">匯入存檔</button>
+            <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+            
+            <div class="total-progress" id="totalProgressText">目前總進度: 0 / 366</div>
+        </div>
     </div>
 
      <div class="header filters">
@@ -464,7 +484,48 @@
                 localStorage.setItem('idleLineageRelics_vFinal', JSON.stringify(collectedRelics));
             }, 0);
             
-            updateCountersFast();
+            // 匯出功能：將進度陣列轉為 JSON 檔案下載
+        function exportData() {
+            if (collectedRelics.length === 0) {
+                alert('目前沒有任何收集進度可以匯出喔！');
+                return;
+            }
+            const dataStr = JSON.stringify(collectedRelics);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'lineage_relics_backup.json'; // 預設下載的檔名
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 匯入功能：讀取上傳的 JSON 檔案並更新畫面
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        collectedRelics = importedData;
+                        // 注意：這裡的 Key 必須跟你目前存檔的 Key 一致 (idleLineageRelics_vFinal2)
+                        localStorage.setItem('idleLineageRelics_vFinal2', JSON.stringify(collectedRelics));
+                        renderView();
+                        alert('資料匯入成功！');
+                    } else {
+                        alert('檔案格式錯誤，請匯入正確的備份檔。');
+                    }
+                } catch (error) {
+                    alert('讀取檔案失敗，請確保這是正確的 JSON 格式檔案。');
+                }
+                // 清空 input 數值，讓使用者下次可以重複匯入同一個檔案
+                document.getElementById('importFile').value = '';
+            };
+            reader.readAsText(file);
+        }
         }
 
         function updateCountersFast() {
